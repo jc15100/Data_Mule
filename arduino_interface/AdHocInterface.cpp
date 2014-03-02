@@ -10,7 +10,7 @@ using namespace std;
 
 Session::Session(){
     isOpen = false;
-    data_directory = "/tmp/node_data/";
+    data_directory = "~/mule_data/";
     // check data directory exists, otherwise create it
     struct stat dir_stat;
     if(stat(data_directory.c_str(), &dir_stat) != 0){
@@ -60,7 +60,9 @@ void Session::send(){
     stringstream comm;
     comm << "python cpp_bridge.py " << sessionid;
     int res = system(comm.str().c_str());
-    printf("%d \n", res);
+    if(res){
+        printf("Error saving to ad-hoc network!\n");
+    }
 }
 
 int main(){
