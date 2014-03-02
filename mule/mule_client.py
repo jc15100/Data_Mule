@@ -74,15 +74,16 @@ class NodeScanner:
 
         return new_nodes
 
-    def make_endpoint(self, num):
-        return self.ip_prefix + str(num), self.port_base + num
-
     def check_internet_connection(self):
         try:
             response=urllib2.urlopen('http://www.google.com',timeout=1)
+            print 'SUCCESS: Got internet connection!'
             return True
         except urllib2.URLError as err: pass
         return False
+
+    def make_endpoint(self, num):
+        return self.ip_prefix + str(num), self.port_base + num
 
 
 class RemoteNodeInterface:
@@ -160,7 +161,7 @@ class MuleDataStore:
         self.directory = file_path
         self.pending_data = set()
         self.completed_ids = set()
-        self.uploader = CloudUploader()
+
         if os.path.isfile(self.file_id):
             with open(self.file_id, "rb") as f:
                 self.pending_data, self.completed_ids = pickle.load(f)
@@ -197,13 +198,6 @@ class MuleDataStore:
         # Save the data to the file store
         with open(self.file_id, "w+") as f:
             pickle.dump((self.pending_data, self.completed_ids), f)
-        # Upload to the cloud if there is pending data and an available internet connection
-        if NodeScanner.check_internet_connection(self):
-            if len(self.pending_data) > 0:
-                self.uploader.upload(self.file_id)
-
-
-
 
 def test_server():
     addr = get_lan_ip()
@@ -214,6 +208,7 @@ def test_server():
 if __name__ == "__main__":
     ds = MuleDataStore()
     ns = NodeScanner()
+    cu = CloudUploader()
 
     while True:
         nodes = ns.scan()
@@ -225,5 +220,13 @@ if __name__ == "__main__":
 
             print "Completed:", ds.completed_ids
             print "Pending:", ds.pending_data
+
+                # Upload to the cloud if there is pending data and an available internet connection
+        if ns.check_internet_connection():
+            if len(ds.pending_data) > 0:
+                for n in ds.pending_data:
+                    name = "/home/root/mule_data/" + str(n)
+                    cu.upload(name)
+                    print "Uploaded data to cloud for:", name
 
         time.sleep(ns.outer_poll_delay)
