@@ -9,9 +9,10 @@ using namespace std;
 
 Session::Session(){
     isOpen = false;
-    data_directory = "~/mule_data/";
+    data_directory = "/home/root/mule_data/";
     // check data directory exists, otherwise create it
     struct stat dir_stat;
+    
     if(stat(data_directory.c_str(), &dir_stat) != 0){
         mkdir(data_directory.c_str(), S_IRWXU);
     }
@@ -60,7 +61,7 @@ void Session::close(){
 /* passes on the file to our python backend */
 void Session::send(){
     stringstream comm;
-    comm << "python ~/mule/cpp_bridge.py " << data_directory << "mule_data.cmdb" << "sessionid;
+    comm << "python ~/mule/cpp_bridge.py " << data_directory << "mule_data.cmdb" << "sessionid";
     int res = system(comm.str().c_str());
     if(res){
         printf("Error saving to ad-hoc network!\n");
