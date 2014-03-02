@@ -2,7 +2,7 @@ from IoTkitSimpleExample import *
 
 class CloudUploader:
 
-    def upload(filename):
+    def upload(self, filename):
         file = open(filename, 'r')
         try:
             name = file.readline()
