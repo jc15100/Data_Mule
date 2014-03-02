@@ -1,4 +1,5 @@
 import socket
+import os
 import time
 
 hellFrozenOver = False
@@ -9,10 +10,10 @@ if os.name != "nt":
     import fcntl
     import struct
 
-	def get_interface_ip(ifname):
-	    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-	    return socket.inet_ntoa(fcntl.ioctl(s.fileno(), 0x8915, struct.pack('256s',
-	                            ifname[:15]))[20:24])
+    def get_interface_ip(ifname):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        return socket.inet_ntoa(fcntl.ioctl(s.fileno(), 0x8915, struct.pack('256s',
+                                ifname[:15]))[20:24])
 
 
 def get_lan_ip():
@@ -39,30 +40,38 @@ def get_lan_ip():
 ##
 
 host = get_lan_ip()
-port_num = int(addr.split(".")[3]) + 10000
+port = int(host.split(".")[3]) + 10000
 
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((host, port))
+
+print "Opened socket at:", (host, port)
+
 s.listen(1)
 
-#We have INCOMING!
-conn, addr = s.accept()
+while True:
+    #We have INCOMING!
+    conn, addr = s.accept()
+    print "Incoming connection from ", addr
 
-while not hellFrozenOver:
-	reqId = conn.recv(1024)
+    while not hellFrozenOver:
+        try:
+            reqId = conn.recv(1024)
+        except Exception:
+            break
 
-	if reqId == 'ID':
-		fh = open(os.path.expanduser("~")+"/mule/" + headersFile, 'rb')
-		chunk = fh.read(1024)
-		while(chunk):
-			conn.send(chunk)
-			chunk = fh.read(1024)
+        if len(reqId) < 1:
+            break
 
-	else:
-		#we assume this is just a file name
-		f = open(os.path.expanduser("~")+"/mule/" + reqId, 'rb')
-		chunk = f.read(1024)
-		while(chunk):
-			conn.send(chunk)
-			chunk = f.read(1024)
+        if reqId == 'ID':
+            fh = open(os.path.expanduser("~")+"/mule_data/" + headersFile, 'rb')
+            chunk = f.read()
+            conn.send(chunk)
+
+        elif len(reqId) > 0:
+            #we assume this is just a file name
+            print "Opening file..."
+            f = open(os.path.expanduser("~")+"/mule_data/" + reqId, 'rb')
+            chunk = f.read()
+            conn.send(chunk)
