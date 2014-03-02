@@ -2,9 +2,6 @@ from IoTkitSimpleExample import *
 
 class CloudUploader:
 
-    def __init__(self):
-        self.file = ''
-
     def upload(filename):
         file = open(filename, 'r')
         try:
