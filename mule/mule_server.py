@@ -4,6 +4,7 @@ import time
 
 hellFrozenOver = False
 headersFile = "mule_data.cmdb"
+parallelConns = 1
 
 ## interface stuff
 if os.name != "nt":
@@ -51,7 +52,7 @@ s.bind((host, port))
 
 print "Opened socket at:", (host, port)
 
-s.listen(1)
+s.listen(parallelConns)
 
 while True:
     #We have INCOMING!
