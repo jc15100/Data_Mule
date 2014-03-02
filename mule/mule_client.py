@@ -7,6 +7,9 @@ import cPickle as pickle
 import os.path
 import time
 import socket
+import urllib2
+from uploadToAWS import CloudUploader
+
 
 if os.name != "nt":
     import fcntl
@@ -73,6 +76,13 @@ class NodeScanner:
 
     def make_endpoint(self, num):
         return self.ip_prefix + str(num), self.port_base + num
+
+    def check_internet_connection(self):
+        try:
+            response=urllib2.urlopen('http://www.google.com',timeout=1)
+            return True
+        except urllib2.URLError as err: pass
+        return False
 
 
 class RemoteNodeInterface:
@@ -150,6 +160,7 @@ class MuleDataStore:
         self.directory = file_path
         self.pending_data = set()
         self.completed_ids = set()
+        self.uploader = CloudUploader()
         if os.path.isfile(self.file_id):
             with open(self.file_id, "rb") as f:
                 self.pending_data, self.completed_ids = pickle.load(f)
@@ -186,6 +197,12 @@ class MuleDataStore:
         # Save the data to the file store
         with open(self.file_id, "w+") as f:
             pickle.dump((self.pending_data, self.completed_ids), f)
+        # Upload to the cloud if there is pending data and an available internet connection
+        if NodeScanner.check_internet_connection(self):
+            if len(self.pending_data) > 0:
+                self.uploader.upload(self.file_id)
+
+
 
 
 def test_server():
