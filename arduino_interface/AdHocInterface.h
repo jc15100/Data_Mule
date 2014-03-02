@@ -17,6 +17,6 @@ class Session{
 
 	private:
         bool isOpen;
-        ofstream file;
+        std::ofstream file;
 };
 

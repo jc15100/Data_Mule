@@ -1,5 +1,5 @@
 CXX := g++
-SRCDIR :=
+SRCDIR :=.
 BUILDDIR := Release
 CFLAGS := -O3
 EXTRA_CFLAGS :=
