@@ -50,23 +50,28 @@ print "Opened socket at:", (host, port)
 
 s.listen(1)
 
-#We have INCOMING!
-conn, addr = s.accept()
+while True:
+    #We have INCOMING!
+    conn, addr = s.accept()
+    print "Incoming connection from ", addr
 
-while not hellFrozenOver:
-    reqId = conn.recv(1024)
+    while not hellFrozenOver:
+        try:
+            reqId = conn.recv(1024)
+        except Exception:
+            break
 
-    if reqId == 'ID':
-        fh = open(os.path.expanduser("~")+"/mule/" + headersFile, 'rb')
-        chunk = fh.read(1024)
-        while(chunk):
+        if len(reqId) < 1:
+            break
+
+        if reqId == 'ID':
+            fh = open(os.path.expanduser("~")+"/mule_data/" + headersFile, 'rb')
+            chunk = f.read()
             conn.send(chunk)
-            chunk = fh.read(1024)
 
-    else:
-        #we assume this is just a file name
-        f = open(os.path.expanduser("~")+"/mule/" + reqId, 'rb')
-        chunk = f.read(1024)
-        while(chunk):
+        elif len(reqId) > 0:
+            #we assume this is just a file name
+            print "Opening file..."
+            f = open(os.path.expanduser("~")+"/mule_data/" + reqId, 'rb')
+            chunk = f.read()
             conn.send(chunk)
-            chunk = f.read(1024)
