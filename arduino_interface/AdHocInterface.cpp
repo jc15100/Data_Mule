@@ -1,6 +1,7 @@
 //#include "Arduino.h"
 #include "AdHocInterface.h"
 #include <sys/time.h>
+#include <stdlib.h>
 #include <sstream>
 #include <iterator>
 
@@ -12,12 +13,11 @@ void Session::open(string sensorname, int size){
     gettimeofday(&current, 0);
 
     stringstream filename;
-    string datafile;
     filename << sensorname << (current.tv_sec + current.tv_usec*10e6);
-    filename >> datafile;
+    filename >> sessionid;
 
     // open data file and write header
-    file.open(filename.str().c_str(), std::ofstream::out | std::ofstream::app);
+    file.open(sessionid.c_str(), std::ofstream::out | std::ofstream::app);
     file << sensorname << endl;
     file << sizeof(float)*size << endl;
 
@@ -43,7 +43,9 @@ void Session::close(){
 }
 
 void Session::send(){
-    // call Andrew's comm API
+    stringstream comm;
+    comm << "python cpp_bridge.py " << sessionid;
+    system(comm.str().c_str());
 }
 
 int main(){

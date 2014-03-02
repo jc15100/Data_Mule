@@ -27,6 +27,7 @@ class Session{
 	private:
         bool isOpen;
         std::ofstream file;
+        std::string sessionid;
 };
 
 #endif
