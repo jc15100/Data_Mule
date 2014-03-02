@@ -1,22 +1,22 @@
-#include <string>
+#include <string.h>
 #include <fstream>
 
 class Session{
 	public:
-	std::string id;
+        std::string id;
+
+        Session(): isOpen(false) {}
+        ~Session();
 	
-	Session() {isOpen(false)}
-	~Session();
-	
-	void open(std::string id, int size);
-	void write(float data);
-	
-	//add more later
-	void close();
-	void send();
+        void open(std::string sensorname);
+        void write(float data);
+
+        //add more later
+        void close();
+        void send();
 
 	private:
-	bool isOpen;
-	FILE* file;
+        bool isOpen;
+        std::ofstream file;
 };
 
