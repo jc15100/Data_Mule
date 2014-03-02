@@ -26,14 +26,18 @@ void Session::open(string sensorname, string typeofdata){
     timeval current;
     gettimeofday(&current, 0);
 
-    stringstream filename;
-    filename << data_directory << sensorname << (current.tv_sec + current.tv_usec*10e6);
-    filename >> sessionid;
-
+    stringstream ss;
+    string filename;
+    ss << sensorname << (current.tv_sec + current.tv_usec*10e6);
+    ss >> sessionid;
+    ss.clear();
+    ss << data_directory << sensorname << (current.tv_sec + current.tv_usec*10e6);
+    ss >> filename;
+    
     // open data file and write header
-    file.open(sessionid.c_str(), std::ofstream::out | std::ofstream::app);
+    file.open(filename.c_str(), std::ofstream::out | std::ofstream::app);
     file << sensorname << endl;
-	file << typeofdata << endl;
+    file << typeofdata << endl;
 
     isOpen = true;
 }
@@ -61,7 +65,7 @@ void Session::close(){
 /* passes on the file to our python backend */
 void Session::send(){
     stringstream comm;
-    comm << "python /home/root/mule/cpp_bridge.py " << data_directory << "mule_data.cmdb " << "sessionid";
+    comm << "python /home/root/mule/cpp_bridge.py " << data_directory << "mule_data.cmdb " << sessionid;
     int res = system(comm.str().c_str());
     if(res){
         printf("Error saving to ad-hoc network!\n");
