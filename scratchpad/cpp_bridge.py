@@ -10,10 +10,14 @@ import cPickle as pickle
 
 
 if __name__ == "__main__":
-    filename = sys.argv(1)
+    filename = sys.argv[1]
 
     pending_data = set()
     completed_ids = set()
+    
+    if not os.path.isfile(filename):
+        with open(filename, "wb+") as f:
+            pickle.dump((pending_data, completed_ids), f)
 
     with open(filename, "rb+") as f:
         # Load the existing data
