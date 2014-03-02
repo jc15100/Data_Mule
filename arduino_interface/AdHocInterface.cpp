@@ -1,11 +1,24 @@
 //#include "Arduino.h"
 #include "AdHocInterface.h"
 #include <sys/time.h>
+#include <sys/stat.h>
 #include <stdlib.h>
 #include <sstream>
 #include <iterator>
 
 using namespace std;
+
+Session::Session(){
+    isOpen = false;
+    data_directory = "/tmp/node_data/";
+    // check data directory exists, otherwise create it
+    struct stat dir_stat;
+    if(stat(data_directory.c_str(), &dir_stat) != 0){
+        mkdir(data_directory.c_str(), S_IRWXU);
+    }
+}
+
+Session::~Session(){}
 
 /* function open(string, int): creates a data file given specified number of points */
 void Session::open(string sensorname, int size){
@@ -13,7 +26,7 @@ void Session::open(string sensorname, int size){
     gettimeofday(&current, 0);
 
     stringstream filename;
-    filename << sensorname << (current.tv_sec + current.tv_usec*10e6);
+    filename << data_directory << sensorname << (current.tv_sec + current.tv_usec*10e6);
     filename >> sessionid;
 
     // open data file and write header
@@ -23,8 +36,6 @@ void Session::open(string sensorname, int size){
 
     isOpen = true;
 }
-
-Session::~Session(){}
 
 /* function write(float): writes a single float datapoint to file*/
 void Session::write(float data){
@@ -45,7 +56,8 @@ void Session::close(){
 void Session::send(){
     stringstream comm;
     comm << "python cpp_bridge.py " << sessionid;
-    system(comm.str().c_str());
+    int res = system(comm.str().c_str());
+    printf("%d \n", res);
 }
 
 int main(){
@@ -65,6 +77,7 @@ int main(){
     data.push_back(1.5);
     test.write(data);
     test.close();
+
     return 0;
 }
 

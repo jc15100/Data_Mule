@@ -7,9 +7,7 @@
 
 class Session{
 	public:
-        std::string id;
-
-        Session(): isOpen(false) {}
+        Session();
         ~Session();
 
         /* function open(string, int): creates a data file given specified number of points */
@@ -28,6 +26,7 @@ class Session{
         bool isOpen;
         std::ofstream file;
         std::string sessionid;
+        std::string data_directory;
 };
 
 #endif
