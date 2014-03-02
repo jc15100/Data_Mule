@@ -61,14 +61,14 @@ void Session::close(){
 /* passes on the file to our python backend */
 void Session::send(){
     stringstream comm;
-    comm << "python /home/root/mule/cpp_bridge.py " << data_directory << "mule_data.cmdb" << "sessionid";
+    comm << "python /home/root/mule/cpp_bridge.py " << data_directory << "mule_data.cmdb " << "sessionid";
     int res = system(comm.str().c_str());
     if(res){
         printf("Error saving to ad-hoc network!\n");
     }
 }
 
-int main(){
+/*int main(){
     Session test;
 
     //test writing single value
@@ -87,4 +87,4 @@ int main(){
     test.close();
 
     return 0;
-}
+}*/
