@@ -46,7 +46,7 @@ class NodeScanner:
     def __init__(self):
         self.nodes = [1, 2, 3, 4, 5]
         self.ip_prefix = '192.168.1.'
-        self.port_base = 5000
+        self.port_base = 10000
         self.inner_poll_delay = 0
         self.outer_poll_delay = 5
 
@@ -67,7 +67,7 @@ class NodeScanner:
 
         #new_nodes = [node for node in self.node_active.keys() if self.met_recently[node] is not True]
         new_nodes = self.node_active - self.met_recently
-        self.met_recently = self.node_active
+        #self.met_recently = self.node_active
 
         return new_nodes
 
@@ -83,9 +83,18 @@ class RemoteNodeInterface:
         self.port_num = port_num
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect((self.ip_address, self.port_num))
+        self.socket.settimeout(1)
+        try:
+            self.socket.connect((self.ip_address, self.port_num))
+            self.is_connected = True
+        except Exception:
+            print "Failed to connect to ", (self.ip_address, self.port_num)
+            self.is_connected = False
 
     def read_socket_to_eof(self):
+        if not self.is_connected:
+            return ""
+
         # Read while there's data
         read_success = True
         data_string = ""
@@ -97,6 +106,8 @@ class RemoteNodeInterface:
         return data_string
 
     def get_ids(self):
+        if not self.is_connected:
+            return set(), set()
         # Request the ID Stream
         self.socket.send('ID')
 
@@ -104,14 +115,16 @@ class RemoteNodeInterface:
         data_string = self.read_socket_to_eof()
 
         # De-serialize into our set object
-        neighbor_completed, neighbor_pending = pickle.loads(data_string)
+        neighbor_pending, neighbor_completed = pickle.loads(data_string)
 
-        return neighbor_completed, neighbor_pending
+        return neighbor_pending, neighbor_completed
 
     def test_get_ids(self):
         return set(["cat", "dog"]), set(["bird", "fish"])
 
     def request_data_for_ids(self, requested_ids, file_path):
+        if not self.is_connected:
+            return set()
         # Set to hold successful transfers
         success_ids = set()
 
@@ -132,7 +145,7 @@ class RemoteNodeInterface:
 
 class MuleDataStore:
 
-    def __init__(self, file_path=os.path.expanduser("~")+"/mule"):
+    def __init__(self, file_path=os.path.expanduser("~")+"/mule_data"):
         self.file_id = file_path + "/mule_data.cmdb"
         self.directory = file_path
         self.pending_data = set()
@@ -147,21 +160,24 @@ class MuleDataStore:
         self.pending_data = dict([("cat", 5), ("bird", 3), ("fish", 1), ("horse", 2)])
 
     def found_neighbor(self, node):
-        neighbor_completed, neighbor_pending = node.get_ids()
+        neighbor_pending, neighbor_completed = node.get_ids()
         #neighbor_completed = set()
         #neighbor_pending = set()
+
+        print neighbor_pending, neighbor_completed
 
         # Update list of completed IDs
         self.completed_ids.update(neighbor_completed)
 
         # Delete any pending entries that have been completed
-        for k in self.pending_data.keys():
+        for k in self.pending_data:
             if k in self.completed_ids:
                 del self.pending_data[k]
                 # Remove files?
 
         # Get list of any needed updates
-        needed_ids = set(self.pending_data.keys()).difference(neighbor_pending)
+        needed_ids = neighbor_pending - self.pending_data
+        print "Need:", needed_ids
 
         # Get the neighbor's pending data
         got_ids = node.request_data_for_ids(needed_ids, self.directory)
@@ -191,6 +207,6 @@ if __name__ == "__main__":
             ds.found_neighbor(rn)
 
             print "Completed:", ds.completed_ids
-            print "Pending:", ds.pending_data.keys()
+            print "Pending:", ds.pending_data
 
         time.sleep(ns.outer_poll_delay)

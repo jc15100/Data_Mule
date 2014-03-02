@@ -17,7 +17,10 @@ if os.name != "nt":
 
 
 def get_lan_ip():
-    ip = socket.gethostbyname(socket.gethostname())
+    try:
+        ip = socket.gethostbyname(socket.gethostname())
+    except Exception:
+        ip = socket.gethostbyname("localhost")
     if ip.startswith("127.") and os.name != "nt":
         interfaces = [
             "eth0",
@@ -65,13 +68,16 @@ while True:
             break
 
         if reqId == 'ID':
-            fh = open(os.path.expanduser("~")+"/mule_data/" + headersFile, 'rb')
+            f = open(os.path.expanduser("~")+"/mule_data/" + headersFile, 'rb')
             chunk = f.read()
             conn.send(chunk)
 
         elif len(reqId) > 0:
             #we assume this is just a file name
             print "Opening file..."
-            f = open(os.path.expanduser("~")+"/mule_data/" + reqId, 'rb')
-            chunk = f.read()
-            conn.send(chunk)
+            try:
+                f = open(os.path.expanduser("~")+"/mule_data/" + reqId, 'rb')
+                chunk = f.read()
+                conn.send(chunk)
+            except Exception:
+                print "Unable to find", reqId

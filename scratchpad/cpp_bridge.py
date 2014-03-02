@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
     pending_data = set()
     completed_ids = set()
-    
+
     if not os.path.isfile(filename):
         with open(filename, "wb+") as f:
             pickle.dump((pending_data, completed_ids), f)
