@@ -10,7 +10,7 @@ class Session{
         Session();
         ~Session();
 
-        /* function open(string, int): creates a data file given specified number of points */
+        /* function open(string, int): opens a session given a sensor name and size of data to be recorded */
         void open(std::string sensorname, int size);
 
         /* function writes a single float datapoint to file*/
@@ -19,10 +19,12 @@ class Session{
         /* function writes a stream of float datapoints to file*/
         void write(std::vector<float> data);
 
+        /* function close(): closes a data session and puts the data on the ad-hoc network*/
         void close();
-        void send();
 
 	private:
+        void send();
+
         bool isOpen;
         std::ofstream file;
         std::string sessionid;

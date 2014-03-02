@@ -51,6 +51,9 @@ void Session::write(vector<float> data){
 void Session::close(){
     file.close();
     isOpen = false;
+
+    /* put data on the ad-hoc network */
+    this->send();
 }
 
 void Session::send(){
