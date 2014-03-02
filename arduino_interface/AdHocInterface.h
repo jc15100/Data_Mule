@@ -1,6 +1,7 @@
 #ifndef AdHocInterface_h
 #define AdHocInterface_h
 
+//#include "Arduino.h"
 #include <string.h>
 #include <fstream>
 #include <vector>
@@ -10,16 +11,21 @@ class Session{
         Session();
         ~Session();
 
-        /* function open(string, int): opens a session given a sensor name and size of data to be recorded */
-        void open(std::string sensorname, int size);
+		/* opens a session to record information to pass onto the network
+		 * sensorname: name of sensor (eg temperature, wind speed)
+		 * typeofdata: type of data collected (eg Celcius, MPH) */
+        void open(std::string sensorname, std::string typeofdata);
 
-        /* function writes a single float datapoint to file*/
+		/* add a data point to the session
+		 * data: the datapoint to add (eg 12, 32.9) */
         void write(float data);
 
-        /* function writes a stream of float datapoints to file*/
+		/* add multiple data points to the session
+		 * data: a vector of datapoints to add (eg {1, 2, 3, 4}) */
         void write(std::vector<float> data);
 
-        /* function close(): closes a data session and puts the data on the ad-hoc network*/
+		/* close the session and put the collected data on the ad-hoc network
+		 * to eventually be uploaded to the cloud */
         void close();
 
 	private:

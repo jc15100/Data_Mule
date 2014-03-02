@@ -1,4 +1,3 @@
-//#include "Arduino.h"
 #include "AdHocInterface.h"
 #include <sys/time.h>
 #include <sys/stat.h>
@@ -20,8 +19,9 @@ Session::Session(){
 
 Session::~Session(){}
 
-/* function open(string, int): creates a data file given specified number of points */
-void Session::open(string sensorname, int size){
+/* function open(string, string): creates a unique file to store data of
+ * <sensorname> and carries data of type <typeofdata> (eg Celcius, pressure, etc) */
+void Session::open(string sensorname, string typeofdata){
     timeval current;
     gettimeofday(&current, 0);
 
@@ -32,22 +32,23 @@ void Session::open(string sensorname, int size){
     // open data file and write header
     file.open(sessionid.c_str(), std::ofstream::out | std::ofstream::app);
     file << sensorname << endl;
-    file << sizeof(float)*size << endl;
+	file << typeofdata << endl;
 
     isOpen = true;
 }
 
-/* function write(float): writes a single float datapoint to file*/
+/* function write(float): writes a single datapoint (float) to file*/
 void Session::write(float data){
     file << data << endl;
 }
 
-/* function write(vector): writes a stream of float datapoints to file*/
+/* function write(vector): writes an array of datapoints(floats) to file*/
 void Session::write(vector<float> data){
     ostream_iterator<float> data_it(file, "\n");
     copy(data.begin(), data.end(), data_it);
 }
 
+/* function close(): closes the file to write, puts the data on the ad-hoc network */
 void Session::close(){
     file.close();
     isOpen = false;
@@ -56,6 +57,7 @@ void Session::close(){
     this->send();
 }
 
+/* passes on the file to our python backend */
 void Session::send(){
     stringstream comm;
     comm << "python cpp_bridge.py " << sessionid;
@@ -69,12 +71,12 @@ int main(){
     Session test;
 
     //test writing single value
-    test.open("temperature", 1);
+    test.open("temperature", "Celcius");
     test.write(4.56);
     test.close();
 
     //test writing data stream
-    test.open("camera", 4);
+    test.open("camera", "pixel");
     vector<float> data;
     data.push_back(4.5);
     data.push_back(3.5);
@@ -85,6 +87,3 @@ int main(){
 
     return 0;
 }
-
-
-
