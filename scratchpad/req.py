@@ -2,29 +2,32 @@ import socket
 import time
 
 host = ''
-port = 5052
+port = 22580
 
-one = 'One'
-two = 'Two'
-three = 'Three'
+one = 'One\r\n'
+two = 'Two\r\n'
+three = 'Three\r\n'
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((host, port))
 s.listen(1)
 
-while(True):
-	conn, addr = s.accept()
-	print 'Incoming request from:', addr
+conn, addr = s.accept()
+print 'Connected with ' + addr[0] + ':' + str(addr[1])
 
+while(True):
 	reqId = conn.recv(1024)
 	print 'Received:', reqId
-	conn.close()
-    
+   
 	if reqId == '1':
-		s.send(one)
+		conn.send('one')
 	elif reqId == '2':
-		s.send(two)
+		conn.send('two')
 	elif reqId == '3':
-		s.send(three)
+		conn.send('three')
+	else:
+		conn.send('Git lost!')
+		break
+conn.close()
 
 
