@@ -182,13 +182,15 @@ class MuleDataStore:
         self.completed_ids.update(neighbor_completed)
 
         # Delete any pending entries that have been completed
+        remove_from_pending = set()
         for k in self.pending_data:
             if k in self.completed_ids:
-                del self.pending_data[k]
+                remove_from_pending.add(k)
                 # Remove files?
+        self.pending_data -= remove_from_pending
 
         # Get list of any needed updates
-        needed_ids = neighbor_pending - self.pending_data
+        needed_ids = neighbor_pending - (self.completed_ids | self.pending_data)
         print "Need:", needed_ids
 
         # Get the neighbor's pending data
@@ -224,9 +226,13 @@ if __name__ == "__main__":
                 # Upload to the cloud if there is pending data and an available internet connection
         if ns.check_internet_connection():
             if len(ds.pending_data) > 0:
+                just_sent = set()
                 for n in ds.pending_data:
                     name = "/home/root/mule_data/" + str(n)
                     cu.upload(name)
                     print "Uploaded data to cloud for:", name
+                    ds.completed_ids.add(n)
+                    just_sent.add(n)
+                ds.pending_data -= just_sent
 
         time.sleep(ns.outer_poll_delay)
